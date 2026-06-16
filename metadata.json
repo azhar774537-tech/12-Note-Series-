@@ -1,0 +1,6 @@
+{
+  "name": "12 Note Series",
+  "description": "An ultra-premium, executive-grade notes management and security ecosystem with offline encryption, multi-theme aesthetics, document exports, and intelligent indexing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
