@@ -17,7 +17,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup the correct Java Development Kit (JDK 17 or higher is required for modern Gradle)
+      # 2. Setup Java Development Kit (JDK 17)
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
@@ -25,23 +25,21 @@ jobs:
           distribution: 'zulu'
           cache: 'gradle'
 
-      # 3. Setup and cache Gradle tasks automatically to speed up execution
+      # 3. Setup and cache Gradle tasks automatically
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # 4. FIX: Grant execute permissions to gradlew wrapper to prevent Exit Code 1 errors
+      # 4. FIX: Grant execute permissions to gradlew in the root directory
       - name: Grant Execute Permission to Gradlew
-        run: chmod +x ./android/gradlew
+        run: chmod +x ./gradlew
 
-      # 5. Build the Android Application
+      # 5. FIX: Build the Android application from the root directory
       - name: Build Android App (Assemble Debug APK)
-        run: |
-          cd android
-          ./gradlew assembleDebug
+        run: ./gradlew assembleDebug
 
-      # 6. Upload the built APK file as an artifact so you can download it from GitHub
+      # 6. FIX: Upload the built APK file from the correct root build path
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: app/build/outputs/apk/debug/app-debug.apk
