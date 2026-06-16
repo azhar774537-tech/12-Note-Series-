@@ -1,0 +1,71 @@
+name: Auto Build React Web App to APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Install Project Dependencies
+        run: npm install
+
+      - name: Build React Web App
+        run: npm run build
+
+      - name: Auto-Detect and Fix Build Directory
+        run: |
+          # Detects if your project builds to 'dist' (Vite) or 'build' (Create React App)
+          if [ -d "dist" ]; then
+            echo "WEB_DIR=dist" >> $GITHUB_ENV
+          elif [ -d "build" ]; then
+            echo "WEB_DIR=build" >> $GITHUB_ENV
+          else
+            echo "WEB_DIR=public" >> $GITHUB_ENV
+          fi
+
+      - name: Install and Initialize Capacitor Automatically
+        run: |
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          # Dynamically create the required capacitor config file
+          cat <<EOF > capacitor.config.json
+          {
+            "appId": "com.githubworkflow.autoapk",
+            "appName": "MyReactApp",
+            "webDir": "${{ env.WEB_DIR }}"
+          }
+          EOF
+          # Initialize Android project structure
+          npx cap add android
+          npx cap sync android
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: automatic-react-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
