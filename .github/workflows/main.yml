@@ -1,7 +1,10 @@
-name: Auto Build React Web App to APK
+name: Auto Build React Native App to APK
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -10,62 +13,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout source
+      # 1. Checkout the repository code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Set up JDK 17
+      # 2. Setup the correct Java Development Kit (JDK 17 or higher is required for modern Gradle)
+      - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
 
-      - name: Install Project Dependencies
-        run: npm install
-
-      - name: Build React Web App
-        run: npm run build
-
-      - name: Auto-Detect and Fix Build Directory
-        run: |
-          # Detects if your project builds to 'dist' (Vite) or 'build' (Create React App)
-          if [ -d "dist" ]; then
-            echo "WEB_DIR=dist" >> $GITHUB_ENV
-          elif [ -d "build" ]; then
-            echo "WEB_DIR=build" >> $GITHUB_ENV
-          else
-            echo "WEB_DIR=public" >> $GITHUB_ENV
-          fi
-
-      - name: Install and Initialize Capacitor Automatically
-        run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          # Dynamically create the required capacitor config file
-          cat <<EOF > capacitor.config.json
-          {
-            "appId": "com.githubworkflow.autoapk",
-            "appName": "MyReactApp",
-            "webDir": "${{ env.WEB_DIR }}"
-          }
-          EOF
-          # Initialize Android project structure
-          npx cap add android
-          npx cap sync android
-
+      # 3. Setup and cache Gradle tasks automatically to speed up execution
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Build Debug APK
+      # 4. FIX: Grant execute permissions to gradlew wrapper to prevent Exit Code 1 errors
+      - name: Grant Execute Permission to Gradlew
+        run: chmod +x ./android/gradlew
+
+      # 5. Build the Android Application
+      - name: Build Android App (Assemble Debug APK)
         run: |
           cd android
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
-      - name: Upload Finished APK
+      # 6. Upload the built APK file as an artifact so you can download it from GitHub
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: automatic-react-apk
+          name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
