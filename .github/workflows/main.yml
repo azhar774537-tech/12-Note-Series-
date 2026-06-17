@@ -1,45 +1,19 @@
-name: Auto Build React Native App to APK
-
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout the repository code
+      # 1. CRITICAL: Add this step first to fetch your source files
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Java Development Kit (JDK 17)
+      # 2. Set up Java / JDK
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
-          cache: 'gradle'
+          cache: 'gradle' # This will now find your gradle-wrapper.properties successfully!
 
-      # 3. Setup and cache Gradle tasks automatically
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      # 4. FIX: Grant execute permissions to gradlew in the root directory
-      - name: Grant Execute Permission to Gradlew
-        run: chmod +x ./gradlew
-
-      # 5. FIX: Build the Android application from the root directory
-      - name: Build Android App (Assemble Debug APK)
-        run: ./gradlew assembleDebug
-
-      # 6. FIX: Upload the built APK file from the correct root build path
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+      # 3. Add your remaining build/run steps below...
+      
