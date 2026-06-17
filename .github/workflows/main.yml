@@ -1,19 +1,14 @@
+name: Auto Build React Native App to APK
+
+# Define your event triggers here
+on:
+  push:
+    branches:
+      - main     # Change this to your default branch name if it is 'master' or something else
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch: # Allows you to also run this manually from the GitHub website
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      # 1. CRITICAL: Add this step first to fetch your source files
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # 2. Set up Java / JDK
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-          cache: 'gradle' # This will now find your gradle-wrapper.properties successfully!
-
-      # 3. Add your remaining build/run steps below...
-      
+  # Your build jobs go here...
