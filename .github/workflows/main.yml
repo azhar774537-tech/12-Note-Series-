@@ -1,4 +1,4 @@
-name: Auto Build React Native App to APK
+name: Build and Test Web App
 
 on:
   push:
@@ -18,43 +18,17 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup standard Node environment
+      # 2. Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      # 3. Force-create a dummy package.json if completely missing to prevent crashes
-      # Then install React Native build tools cleanly
-      name: Initialize Environment Dependencies
-        run: |
-          if [ ! -f "package.json" ]; then
-            echo '{"name": "app", "version": "1.0.0"}' > package.json
-          fi
-          npm install react-native --no-audit --no-fund
+      # 3. Install project dependencies
+      - name: Install Dependencies
+        run: npm install
 
-      # 4. Set up Java Environment
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-
-      # 5. Check structural layout and build the APK directly
-      - name: Build Android Release APK
-        run: |
-          if [ -d "android" ]; then
-            cd android
-            chmod +x gradlew
-            ./gradlew assembleRelease
-          else
-            # If the android folder is nested inside a subfolder, find it and build
-            NESTED_ANDROID=$(find . -name "gradlew" -not -path "*/node_modules/*" | head -n 1 | xargs dirname)
-            if [ -n "$NESTED_ANDROID" ]; then
-              cd $NESTED_ANDROID
-              chmod +x gradlew
-              ./gradlew assembleRelease
-            else
-              echo "CRITICAL ERROR: No Android Gradle structure found in this repository branch!" && exit 1
-            fi
-          fi
+      # 4. Build the production website files
+      - name: Build Web Application
+        run: npm run build
