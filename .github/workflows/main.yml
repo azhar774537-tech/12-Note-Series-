@@ -14,12 +14,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: This pulls your code into the runner (Fixes the current error)
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Step 2: Set up Java
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
           cache: 'gradle'
+
+      # Step 3: Add your React Native build steps below this line...
