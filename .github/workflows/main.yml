@@ -18,15 +18,27 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js (Removed 'cache' requirement to bypass the error)
+      # 2. Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # 3. Install React Native project dependencies
-      - name: Install Dependencies
-        run: npm install
+      # 3. Find package.json and install dependencies wherever they are located
+      - name: Install Project Dependencies
+        run: |
+          if [ -f "package.json" ]; then
+            npm install
+          else
+            SUBFOLDER=$(find . -name "package.json" -not -path "*/node_modules/*" | head -n 1 | xargs dirname)
+            if [ -n "$SUBFOLDER" ] && [ "$SUBFOLDER" != "." ]; then
+              echo "Found project in subfolder: $SUBFOLDER"
+              cd $SUBFOLDER
+              npm install
+            else
+              echo "Error: package.json not found in the repository!" && exit 1
+            fi
+          fi
 
       # 4. Set up Java
       - name: Set up JDK
@@ -35,13 +47,15 @@ jobs:
           java-version: '17'
           distribution: 'zulu'
 
-      # 5. Grant execute permissions for the Gradle wrapper
-      - name: Make Gradle executable
-        run: chmod +x android/gradlew
-        continue-on-error: true
-
-      # 6. Build the Android APK
+      # 5. Locate and execute the Gradle Android Build
       - name: Build Android Release APK
         run: |
-          cd android
-          ./gradlew assembleRelease
+          GRADLE_DIR=$(find . -name "gradlew" -not -path "*/node_modules/*" | head -n 1 | xargs dirname)
+          if [ -n "$GRADLE_DIR" ]; then
+            echo "Found Android environment in: $GRADLE_DIR"
+            cd $GRADLE_DIR
+            chmod +x gradlew
+            ./gradlew assembleRelease
+          else
+            echo "Error: gradlew file not found anywhere in the repository!" && exit 1
+          fi
