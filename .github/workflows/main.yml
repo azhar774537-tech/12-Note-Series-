@@ -1,33 +1,57 @@
-name: Build and Test Web App
+name: Build and Deploy Web App
 
 on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Pull code files from GitHub
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js using Version 22
+      # We use Node 22 to match the updated environment
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
 
-      # 3. Install project dependencies
+      # Fix for Vite base path deployment on GitHub Pages
+      - name: Set Vite Base Path
+        run: |
+          sed -i "s|base: '/'|base: '/12-Note-Series-'|g" vite.config.ts || true
+
       - name: Install Dependencies
         run: npm install
 
-      # 4. Build the production website files
       - name: Build Web Application
         run: npm run build
+
+      - name: Upload Build Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
