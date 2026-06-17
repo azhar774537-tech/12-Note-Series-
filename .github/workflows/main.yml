@@ -1,14 +1,25 @@
 name: Auto Build React Native App to APK
 
-# Define your event triggers here
 on:
   push:
     branches:
-      - main     # Change this to your default branch name if it is 'master' or something else
+      - main
   pull_request:
     branches:
       - main
-  workflow_dispatch: # Allows you to also run this manually from the GitHub website
+  workflow_dispatch:
 
 jobs:
-  # Your build jobs go here...
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+          cache: 'gradle'
