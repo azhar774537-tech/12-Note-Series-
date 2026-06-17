@@ -18,27 +18,29 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Set up Node.js (Required for React Native)
+      # 2. Set up Node.js (Removed 'cache' requirement to bypass the error)
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       # 3. Install React Native project dependencies
       - name: Install Dependencies
         run: npm install
 
-      # 4. Set up Java with the correct working directory path
+      # 4. Set up Java
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'zulu'
-          cache: 'gradle'
-          cache-dependency-path: 'android/build.gradle' # Tells GitHub where to find your gradle files
 
-      # 5. Build the Android APK
+      # 5. Grant execute permissions for the Gradle wrapper
+      - name: Make Gradle executable
+        run: chmod +x android/gradlew
+        continue-on-error: true
+
+      # 6. Build the Android APK
       - name: Build Android Release APK
         run: |
           cd android
