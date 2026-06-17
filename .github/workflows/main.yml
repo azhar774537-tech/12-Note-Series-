@@ -18,11 +18,11 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Setup Node.js (Cache completely removed to prevent lockfile errors)
+      # 2. Setup Node.js using Version 22 to match new runner environments
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       # 3. Install project dependencies
       - name: Install Dependencies
