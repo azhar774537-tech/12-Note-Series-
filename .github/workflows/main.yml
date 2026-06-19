@@ -4,13 +4,15 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
 
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -18,32 +20,25 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      # We use Node 22 to match the updated environment
-      - name: Setup Node.js
+      - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: 20
 
-      # Fix for Vite base path deployment on GitHub Pages
-      - name: Set Vite Base Path
+      - name: Install dependencies and Build
         run: |
-          sed -i "s|base: '/'|base: '/12-Note-Series-'|g" vite.config.ts || true
+          npm install
+          npm run build
 
-      - name: Install Dependencies
-        run: npm install
-
-      - name: Build Web Application
-        run: npm run build
-
-      - name: Upload Build Artifact
+      - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          # Change this path if your build output goes to a folder like 'dist' or 'build'
+          path: '.' 
 
   deploy:
     environment:
@@ -54,4 +49,8 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
+        uses: actions/configure-pages@v5
+        
+      - name: Publish Artifact
         uses: actions/deploy-pages@v4
+        
